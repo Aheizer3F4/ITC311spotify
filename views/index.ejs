@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Spotify</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Spotify</h1>
+        <a href="/upload" class="back-link">Upload a New Song</a>
+        
+        <div class="songs-container">
+            <% songs.forEach((song, index) => { %>
+                <div class="song" data-index="<%= index %>" style="display: none;">
+                    <div class="cover-container">
+                        <img src="/<%= song.cover_path.replace('uploads/', '') %>" alt="Cover Image" class="cover-image">
+                    </div>
+                    <div class="song-info">
+                        <h2><%= song.name %> - <%= song.artist %></h2>
+                        <audio controls class="audio-player" id="audio-<%= index %>">
+                            <source src="/<%= song.file_path.replace('uploads/', '') %>" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+
+        <div class="pagination">
+            <% songs.forEach((song, index) => { %>
+                <img src="/<%= song.cover_path.replace('uploads/', '') %>" 
+                     alt="Cover Image" 
+                     class="pagination-image" 
+                     data-index="<%= index %>" 
+                     style="cursor: pointer;">
+            <% }) %>
+        </div>
+    </div>
+
+    <script>
+        const songs = <%- JSON.stringify(songs) %>;
+        let currentSongIndex = 0;
+
+        function showCurrentSong() {
+            const songElements = document.querySelectorAll('.song');
+            songElements.forEach((songElement, index) => {
+                songElement.style.display = index === currentSongIndex ? 'block' : 'none';
+            });
+        }
+
+        function playCurrentSong() {
+            const audioElements = document.querySelectorAll('audio');
+            audioElements.forEach((audio, index) => {
+                if (index === currentSongIndex) {
+                    audio.play();
+                } else {
+                    audio.pause();
+                }
+            });
+            showCurrentSong();
+        }
+
+        // Automatically go to the next song when the current one ends
+        document.querySelectorAll('audio').forEach((audio, index) => {
+            audio.addEventListener('ended', () => {
+                currentSongIndex = (currentSongIndex < songs.length - 1) ? currentSongIndex + 1 : 0; // Loop back to first song if at the end
+                playCurrentSong();
+            });
+        });
+
+        // Pagination image click event listeners
+        const paginationImages = document.querySelectorAll('.pagination-image');
+        paginationImages.forEach(image => {
+            image.addEventListener('click', (e) => {
+                currentSongIndex = parseInt(e.target.getAttribute('data-index'));
+                playCurrentSong();
+            });
+        });
+
+        window.onload = () => {
+            showCurrentSong();
+            playCurrentSong();
+        };
+    </script>
+</body>
+</html>
